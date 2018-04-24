@@ -1,5 +1,5 @@
 # Semantic_Inpainting_using_a_GAN
-My attempt of using a GAN to do semantic inpainting.
+My attempt of using a GAN to do semantic inpainting for my Part III essay.
 
 Code is based on the code from Taehoon Kim's DCGAN-tensorflow project:<br />
 https://github.com/carpedm20/DCGAN-tensorflow###
@@ -18,6 +18,6 @@ $ python main.py --dataset celebA --input_height=108 --crop --train
 ![Example1](/good_samples/celebA_8e_merge.png) <br />
 Samples after 8 epochs. Here the generator completed the picture receiving approximately the lower third of the picture. <br /> <br />
 
-![Example1](/good_samples/celebA_8e_diffz_z_dim=4000_--img_height=12.png) <br />
-Samples after 8 epochs. Here the variation with z is shown. <br /> <br />
+![Example2](/good_samples/celebA_8e_diffz_z_dim=4000_--img_height=12.png) <br />
+Samples after 8 epochs. Here the variation with z is shown. Part supplied to the generator was marked for visualisation.<br /> <br />
 
