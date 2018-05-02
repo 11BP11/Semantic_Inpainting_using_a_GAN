@@ -274,8 +274,32 @@ def visualize(sess, dcgan, config, option):
       else:
         save_both(samples, sample_inputs, image_frame_dim, ('test_v6_compare_%s' % (idx)))
         save_images(merged, [image_frame_dim, image_frame_dim, 3], './samples/test_v6_merged_samples_%s.png' % (idx))
+  
+  elif option == 7: #Save 4x4(6x6) image of merged samples (not coloured). 
+    batch_size = config.batch_size
+    
+    for idx in xrange(min(8,int(np.floor(1000/batch_size)))):
+      print(" [*] %d" % idx)
       
+      sample_inputs, sample_img, sample_labels = get_img(dcgan, idx*batch_size, batch_size, config.dataset, test=True)
+
+      sample_z = np.random.uniform(-1, 1, size=(batch_size , dcgan.z_dim))
       
+      if config.dataset == 'mnist' and config.use_labels:
+        samples = sess.run(dcgan.sampler, feed_dict={dcgan.z: sample_z, dcgan.img: sample_img, dcgan.y: sample_labels})
+      else:
+        samples = sess.run(dcgan.sampler, feed_dict={dcgan.z: sample_z, dcgan.img: sample_img })
+
+      merged = np.concatenate((samples[:,:(dcgan.output_height-dcgan.img_height),:,:], \
+                                  sample_inputs[:,(dcgan.output_height-dcgan.img_height):,:,:]),1)
+            
+      if config.dataset == 'mnist':
+        merged_subset = merged[0:36]
+        save_images(merged_subset, [6, 6, 3], './samples/test_v7_merged_samples_%s.png' % (idx))      
+      else:
+        merged_subset = merged[0:16]
+        save_images(merged_subset, [4, 4, 3], './samples/test_v7_merged_samples_%s.png' % (idx))
+            
   elif option == 8: #different values of z. Version to avoid batch normalization effect if this causes troubles"
     batch_size = config.batch_size
     length = int(np.sqrt(config.batch_size))
@@ -299,20 +323,12 @@ def visualize(sess, dcgan, config, option):
     all_samples = np.empty((batch_size,batch_size,dcgan.output_height,dcgan.output_width,dcgan.c_dim))
     
     for idx in xrange(batch_size): #over all noice variations.
-      print(" [*] %d" % idx) #(old problem: Batch normalisation!!!!!!!)
+      print(" [*] %d" % idx) 
     
       sample_inputs = sample_inputs0
       sample_labels = sample_labels0
       sample_img = sample_img0
-      
-      #Standard:
-      #sample_z = np.repeat([z_values[idx]], dcgan.batch_size, axis=0)
-      #print("first z_values:")
-      #print(z_values[idx,1:12])
-      #In case z gets caught in batch normalisation:
-      #sample_z = np.random.uniform(-1, 1, size=(batch_size , dcgan.z_dim))
-      #sample_z[0,:] = z_values[idx]
-      
+            
       sample_z = np.zeros((batch_size,dcgan.z_dim))
       for i in range(batch_size):
         z = z_values[shuff[i,idx]]        
@@ -348,7 +364,6 @@ def visualize(sess, dcgan, config, option):
       for j in range(length):
         z_values = np.append(z_values, [class_z * values[i] + (1-class_z) * values[j]], axis=0)
     
-    #for idx in range(batch_size): #over all noice variations.
     for idx in range(64):
       print(" [*] %d" % idx)
     
@@ -383,30 +398,16 @@ def visualize(sess, dcgan, config, option):
                       resize_width=dcgan.output_width,
                       crop=dcgan.crop,
                       grayscale=dcgan.grayscale) for prog_pic in prog_pics_base]
-      '''
-      prog_pics = [
-            get_image(prog_pic,
-                      input_height=dcgan.input_height,
-                      input_width=dcgan.input_width,
-                      resize_height=dcgan.output_height,
-                      resize_width=dcgan.output_width,
-                      crop=dcgan.crop,
-                      grayscale=dcgan.grayscale) for prog_pic in prog_pics_base]
-      '''  
       prog_pics_conv = np.array(prog_pics).astype(np.float32)   
       
       print(prog_pics_conv.shape)
       
-      #out_pics = prog_pics_conv.reshape((64,prog_pics_conv.shape[1],prog_pics_conv.shape[2],:))
       out_pics = np.reshape(prog_pics_conv, (64,prog_pics_conv.shape[1],prog_pics_conv.shape[2],-1))
       print(out_pics.shape)
-      #save_images(out_pics[1:2:], [1, 1], './samples_progress/progress1.png')
       
       
-      #save_images(prog_pics_conv, [image_frame_dim, image_frame_dim, 3], './samples_progress/progress.png')
       save_images(out_pics, [image_frame_dim, image_frame_dim], './samples_progress/progress{:1d}.png'.format(i+1))
-      #save_images(samples, [image_frame_dim, image_frame_dim], './samples/test_arange_%s.png' % (idx))
-
+      
   elif option == 11: #Save pictures centered and aligned in ./data_aligned
     
     if True: #training data
@@ -426,12 +427,6 @@ def visualize(sess, dcgan, config, option):
           save_images(sample_inputs[i:i+1:], [1,1],
                           './data_aligned/al{:06d}.jpg'.format(pic_idx+1))
         print("Done [%s] out of [%s]" % (idx,batch_idxs))
-      '''                  
-      sample_inputs, _, _ = get_img(dcgan, 0, nr_samples, config.dataset, test=False)
-      for pic_idx in range(nr_samples):
-        save_images(sample_inputs[pic_idx:pic_idx+1:], [1,1],
-                        './data_aligned/aligned{:03d}.jpg'.format(pic_idx+1))
-      '''
     
     if True: #test data   
       if not os.path.exists('data_test_aligned'):
@@ -509,20 +504,6 @@ def colour_samples(samples, dataset, height):
   col_img = np.concatenate((generated_half_col,input_half_col),1)
   
   return col_img
-'''   
-def colour_samples(samples, height):
-
-  upper_half = samples[:,:height,:,0]
-  upper_half_zeros = np.zeros_like(upper_half)
-  upper_half_col = np.stack((upper_half_zeros,upper_half_zeros,upper_half), -1)
-  
-  lower_half = samples[:,height:,:,0]
-  lower_half_zeros = np.zeros_like(lower_half)
-  lower_half_col = np.stack((lower_half,lower_half,lower_half), -1)
-  
-  col_img = np.concatenate((upper_half_col,lower_half_col),1)
-  return col_img
-'''
   
 def colour_originals(originals, dataset):
   if dataset == "mnist":
@@ -540,15 +521,12 @@ def save_both(col_img, col_input, image_frame_dim, name):
   output[::2] = col_img[:int(batch_size / 2):]
   output[1::2] = col_input[:int(batch_size / 2):]
   
-  #save_images(output, [image_frame_dim, image_frame_dim], './samples/' + name + '_%sa.png' % (idx)) #3?
   save_images(output, [image_frame_dim, image_frame_dim], './samples/' + name + 'a.png' ) #3?
 
   output[::2] = col_img[int(batch_size / 2)::]
   output[1::2] = col_input[int(batch_size / 2)::]
   
   save_images(output, [image_frame_dim, image_frame_dim, 3], './samples/' + name + 'b.png' )
-
-  #save_images(col_img, [image_frame_dim, image_frame_dim, 3], './samples/test_arange_samples_%s.png' % (idx))
 
 
 def image_manifold_size(num_images):

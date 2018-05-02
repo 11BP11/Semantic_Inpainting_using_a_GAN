@@ -23,7 +23,6 @@ class DCGAN(object):
          gen_use_img=False, use_labels=False, drop_discriminator=False,
          use_border=False):
     """
-
     Args:
       sess: TensorFlow session
       batch_size: The size of batch. Should be specified before training.
@@ -34,6 +33,7 @@ class DCGAN(object):
       gfc_dim: (optional) Dimension of gen units for for fully connected layer. [1024]
       dfc_dim: (optional) Dimension of discrim units for fully connected layer. [1024]
       c_dim: (optional) Dimension of image color. For grayscale input, set to 1. [3]
+      ...
     """
     self.sess = sess
     self.crop = crop
@@ -56,7 +56,6 @@ class DCGAN(object):
     self.output_height = output_height
     self.output_width = output_width
 
-    #self.y_dim = y_dim if self.use_labels else 0
     self.y_dim = y_dim
     self.z_dim = z_dim
     self.img_height = img_height
@@ -156,7 +155,6 @@ class DCGAN(object):
     def L1_loss(x_img, img):
       v_length = x_img.get_shape().as_list()[1]
       return tf.scalar_mul(1./max(v_length,1), tf.norm(x_img - img, ord=1, axis=-1))
-      #return tf.scalar_mul(1./tf.maximum(v_length,1), tf.norm(x_img - img, ord=1, axis=-1))
     def L2_loss(x_img, img):
       v_length = x_img.get_shape().as_list()[1]
       return tf.scalar_mul(1./v_length, tf.norm(x_img - img, ord=2, axis=-1))
@@ -397,31 +395,6 @@ class DCGAN(object):
             save_images(col_img, image_manifold_size(test_samples.shape[0]),
                   './{}/train_{:02d}_{:04d}_vis_z_{:01d}.png'.format(config.sample_dir, epoch, idx, input_idx))
       
-          '''
-          #Visualize change with z: (4 with same z shouldn't influence batch normalisation too much)
-          print("visualizing for different z values ...") #Escape batch normalisation
-          nr_z_samples = 4
-          vis_z_samples = np.empty((nr_z_samples,self.batch_size,self.output_height,self.output_width,self.c_dim))
-          for noice_idx in xrange(self.batch_size): #over all noice variations.
-            #print(" [*] vis z %d" % noice_idx) #Escape batch normalisation
-          
-            vis_z = np.copy(sample_z)
-            #vis_z[0] = z_range[noice_idx]
-            vis_z[0:nr_z_samples] = np.repeat([z_range[noice_idx]],nr_z_samples,axis=0)
-            
-            vis_z_dict = dict(test_dict)
-            vis_z_dict[self.z] = vis_z
-            
-            samples = self.sess.run(self.sampler, feed_dict=vis_z_dict)
-             
-            #for i in range(4):
-            vis_z_samples[0:nr_z_samples,noice_idx] = np.copy(samples[0:nr_z_samples])
-          
-          for i in range(nr_z_samples):
-            col_img = colour_samples(vis_z_samples[i], config.dataset, self.img_height)
-            save_images(col_img, image_manifold_size(test_samples.shape[0]),
-                  './{}/train_{:02d}_{:04d}_vis_z_{:01d}.png'.format(config.sample_dir, epoch, idx, i))
-          '''
       else: #(=Do, if loop finishes without error)
         #Visualize at the end of every epoch
         if epoch<8:
@@ -430,17 +403,15 @@ class DCGAN(object):
               pic_idx = 8*j + i
               save_images(test_samples[pic_idx:pic_idx+1:], [1,1],
                       './samples_progress/part{:01d}/pic{:02d}_epoch{:02d}.jpg'.format(j+1, pic_idx, epoch))
-              #save_images([test_samples[1],test_samples[2],test_samples[3],test_samples[4]], 4,
-              #save_images(test_samples, image_manifold_size(sample_inputs.shape[0]),
-              #        './samples_progress/pic{:02d}_epoch{:02d}.jpg'.format(idx, epoch))
-              #sample_inputs = np.array(sample).astype(np.float32)   
-        
+    
+    #save a final checkpoint
+    #self.save(config.checkpoint_dir, counter)
+      
   def discriminator(self, image, y=None, reuse=False):
     with tf.variable_scope("discriminator") as scope:
       if reuse:
         scope.reuse_variables()
 
-      #if not self.y_dim:
       if not self.dataset_name == 'mnist':
         h0 = lrelu(conv2d(image, self.df_dim, name='d_h0_conv'))
         h1 = lrelu(self.d_bn1(conv2d(h0, self.df_dim*2, name='d_h1_conv')))
@@ -450,14 +421,9 @@ class DCGAN(object):
 
         return tf.nn.sigmoid(h4), h4
       else:
-        #if not self.use_labels:
         y = tf.zeros((self.batch_size, 0)) if y is None else y
-        #  yb = tf.zeros((self.batch_size, 1, 1, 0))
-        #else:
-        #yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
         yb = tf.reshape(y, [self.batch_size, 1, 1, -1])
           
-        #yb = tf.reshape(y, [self.batch_size, 1, 1, self.y_dim])
         x = conv_cond_concat(image, yb)
 
         h0 = lrelu(conv2d(x, self.c_dim + self.y_dim, name='d_h0_conv'))
@@ -481,7 +447,6 @@ class DCGAN(object):
       do_train = not sampler
       do_with_w = not sampler
       
-      #if not self.y_dim:
       if not self.dataset_name == 'mnist':
         if not self.gen_use_img:
           s_h, s_w = self.output_height, self.output_width
@@ -538,7 +503,6 @@ class DCGAN(object):
           h0 = tf.reshape(
               linear(z, self.gf_dim*8*s_h16*s_w16, 'g_h0_lin'),
               [self.batch_size, s_h16, s_w16, self.gf_dim * 8])
-              #[-1, s_h16, s_w16, self.gf_dim * 8])
           h0 = tf.nn.relu(self.g_bn0(h0, train=False))
           h0 = conv_cond_concat(h0,border)
           
@@ -577,7 +541,6 @@ class DCGAN(object):
         else:
           border = tf.zeros([self.batch_size, 0])
           imgb = tf.zeros([self.batch_size, 1, 1, 0])
-        #imgb = tf.reshape(border, [self.batch_size, 1, 1, self.border_height*self.output_width])
         
         if not self.use_labels:
           b = imgb

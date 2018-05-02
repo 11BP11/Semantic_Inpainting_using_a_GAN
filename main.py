@@ -51,7 +51,6 @@ def main(_):
 
   if FLAGS.img_height is None:
     FLAGS.img_height = 4*int(FLAGS.output_height / 10)
-    #FLAGS.img_height = 4*int(FLAGS.output_height / 12)
     print("No img_hight supplied. img_height = %s" % FLAGS.img_height)
   
   if FLAGS.split_data is True:
@@ -92,7 +91,6 @@ def main(_):
           batch_size=FLAGS.batch_size,
           sample_num=FLAGS.batch_size,
           y_dim=10,
-          #z_dim=FLAGS.generate_test_images,
           z_dim=FLAGS.z_dim,
           dataset_name=FLAGS.dataset,
           input_fname_pattern=FLAGS.input_fname_pattern,
@@ -115,7 +113,6 @@ def main(_):
           output_height=FLAGS.output_height,
           batch_size=FLAGS.batch_size,
           sample_num=FLAGS.batch_size,
-          #z_dim=FLAGS.generate_test_images,
           z_dim=FLAGS.z_dim,
           dataset_name=FLAGS.dataset,
           input_fname_pattern=FLAGS.input_fname_pattern,
@@ -140,7 +137,7 @@ def main(_):
     # Below is codes for visualization
     #OPTION = 1
     if FLAGS.vis_type == 0:
-      vis_options = [6,9,10]
+      vis_options = [6,7,9,10]
       for option in vis_options:
         print("Visualizing option %s" % option)
         OPTION = option
