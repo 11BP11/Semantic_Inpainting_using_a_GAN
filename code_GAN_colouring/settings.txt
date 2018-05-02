@@ -1,0 +1,23 @@
+
+main.py --dataset celebA --input_height=108 --crop --epoch=1 --train
+
+['epoch', 1]
+['learning_rate', 0.0002]
+['beta1', 0.5]
+['train_size', inf]
+['batch_size', 64]
+['input_height', 108]
+['input_width', 108]
+['output_height', 64]
+['output_width', 64]
+['dataset', 'celebA']
+['input_fname_pattern', '*.jpg']
+['sample_dir', 'samples']
+['checkpoint_dir', 'checkpoint']
+['train', True]
+['crop', True]
+['visualize', False]
+['generate_test_images', 100]
+['vis_type', 0]
+['lambda_loss', 100.0]
+['z_dim', 100]
