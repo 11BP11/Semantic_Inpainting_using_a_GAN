@@ -1,6 +1,5 @@
 # Semantic_Inpainting_using_a_GAN
-My attempt of using a GAN to do semantic inpainting for my [Part III essay]
-(https://drive.google.com/open?id=1V5S_EPCBNptCq54BXGLzbgWr2sGbvwHX).
+My attempt of using a GAN to do semantic inpainting for my [Part III essay](https://drive.google.com/open?id=1V5S_EPCBNptCq54BXGLzbgWr2sGbvwHX).
 
 The code is based on the code from Taehoon Kim's DCGAN-tensorflow project:<br />
 https://github.com/carpedm20/DCGAN-tensorflow
